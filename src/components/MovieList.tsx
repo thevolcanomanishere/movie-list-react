@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NoPoster } from "../Images";
 
 interface MovieItem {
     name: string;
@@ -17,6 +18,7 @@ interface MovieItemError {
 export default function MovieList() {
 
     const [movies, setMovies] = useState<MovieItem[]>([]);
+    const [allMovies, setAllMovies] = useState<MovieItem[]>([]);
     const movieListUrl = "https://remarkable-bombolone-51a3d9.netlify.app/.netlify/functions/movies";
 
     const getMoviePoster = async (movie: MovieItem) => {
@@ -47,28 +49,66 @@ export default function MovieList() {
                 if(poster){
                     return { ...movie, image: poster };
                 } else {
-                    return movie;
+                    // If no poster, return the default image
+                    return {...movie, image: NoPoster};
                 }
             }));
             return await moviesWithPosters;
         }
     };
 
+    const filterMovies = (year: number) => {
+        console.log(year);
+        if(year < 999) return setMovies(allMovies);
+        if(!year) return setMovies(allMovies);
+        setMovies(movies.filter(movie => {
+            return movie.productionYear === year;
+        }))
+    }
+
     useEffect( () => {
-        const fetchData = async () => {
+        const fetchMovies = async () => {
             const result = await getMovies();
             if(result){
                 setMovies(result);
+                setAllMovies(result);
             }
         }
-        fetchData();
-    });
+        fetchMovies();
+    }, []);
 
 
     return (
       <div className="bg-white">
         <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
-          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900"></h2>
+          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Movie List</h2>
+          <div className="flex">
+                <div className="mb-3 xl:w-60">
+                    <label  className="form-label inline-block mb-2 text-gray-700">Movie Year</label>
+                    <input
+                    type="textsearch"
+                    className="
+                        form-control
+                        block
+                        w-full
+                        px-3
+                        py-1.5
+                        text-base
+                        font-normal
+                        text-gray-700
+                        bg-white bg-clip-padding
+                        border border-solid border-gray-300
+                        rounded
+                        transition
+                        ease-in-out
+                        m-0
+                        focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none
+                    "
+                    placeholder="Enter the year of the movie"
+                    onChange={(e) => filterMovies(parseInt(e.target.value))}
+                    />
+                </div>
+        </div>
           <div className="mt-6 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
             {movies.map((movie, index) => (
               <div key={index} className="group relative">
