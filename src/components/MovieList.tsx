@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import { NoPoster } from "../Images";
+import { MovieItem } from "../types";
+import MovieDetail from "./MovieDetail";
 import MovieGenreFilter from "./MovieGenreFilter";
 import MovieYearFilter from "./MovieYearFilter";
-
-export interface MovieItem {
-    name: string;
-    productionYear: number;
-    genre: string;
-    synopsisShort: string;
-    synopsis: string;
-    image: string;
-}
 
 interface MovieItemError {
     message: string;
@@ -24,6 +17,8 @@ export default function MovieList() {
     const [selectedGenre, setSelectedGenre] = useState<string>('All Genres');
     const [uniqueYears, setUniqueYears] = useState<(number | string)[]>([]);
     const [uniqueGenres, setUniqueGenres] = useState<(string)[]>([]);
+    const [movieDetailOpen, setMovieDetailOpen] = useState<boolean>(false);
+    const [movieFocus, setMovieFocus] = useState<MovieItem | null>(null);
 
     const movieListUrl = "https://remarkable-bombolone-51a3d9.netlify.app/.netlify/functions/movies";
 
@@ -94,9 +89,14 @@ export default function MovieList() {
         filterMovies();
     }, [selectedYear, selectedGenre, movies]);
 
+    useEffect( () => {
+        console.log('Open');
+        setMovieDetailOpen(true);
+    }, [movieFocus]);
+
     const renderMovie = (movie: MovieItem, index: number) => {
         return (
-            <div key={index} className="group relative">
+            <div key={index} onClick={() => setMovieFocus(movie)} className="group relative">
               <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:aspect-none">
                 <img
                   src={movie.image}
@@ -125,11 +125,14 @@ export default function MovieList() {
     return (
       <div className="bg-white">
         <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
-          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Movie List</h2>
+          <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-10">Movie List</h2>
           <div className="flex">
                 <MovieYearFilter years={uniqueYears} setSelectedYear={setSelectedYear}/>
                 <MovieGenreFilter genres={uniqueGenres} setSelectedGenre={setSelectedGenre}/>
         </div>
+            {(movieDetailOpen && movieFocus) && (
+                <MovieDetail movieItem={movieFocus} isOpenParent={movieDetailOpen} setClosedParent={setMovieDetailOpen}/>
+            )}
           <div className="mt-6 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
             {renderAllMovies()}
           </div>
