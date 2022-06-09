@@ -12,6 +12,7 @@ interface MovieItemError {
 export default function MovieList() {
 
     const [movies, setMovies] = useState<MovieItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [filteredMovies, setFilteredMovies] = useState<MovieItem[]>([]);
     const [selectedYear, setSelectedYear] = useState<(number | string)>('All Years');
     const [selectedGenre, setSelectedGenre] = useState<string>('All Genres');
@@ -71,6 +72,7 @@ export default function MovieList() {
                     ...result.map(movie => movie.genre).filter((genre, index, genres) => genres.indexOf(genre) === index)
                 ]);
                 setSelectedYear('All Years');
+                setIsLoading(false);
             }
         }
         fetchMovies();
@@ -90,18 +92,17 @@ export default function MovieList() {
     }, [selectedYear, selectedGenre, movies]);
 
     useEffect( () => {
-        console.log('Open');
         setMovieDetailOpen(true);
     }, [movieFocus]);
 
     const renderMovie = (movie: MovieItem, index: number) => {
         return (
             <div key={index} onClick={() => setMovieFocus(movie)} className="group relative">
-              <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:aspect-none">
+              <div className="w-full bg-gray-200 aspect-h-1 aspect-auto rounded-md overflow-hidden group-hover:opacity-75 lg:aspect-none">
                 <img
                   src={movie.image}
                   alt={movie.synopsisShort}
-                  className="w-full h-full object-center object-cover lg:w-full lg:h-full"
+                  className="w-full h-full object-center object-cover lg:h-full"
                 />
               </div>
               <div className="mt-4 flex justify-between">
@@ -118,7 +119,8 @@ export default function MovieList() {
     }
 
     const renderAllMovies = () => {
-        if(filteredMovies.length === 0) return <p>No movies found</p>
+        if(isLoading) return <p>Loading movies...</p>
+        if(filteredMovies && filteredMovies.length === 0) return <p>No movies found</p>
         return filteredMovies.map(renderMovie);
     }
 
